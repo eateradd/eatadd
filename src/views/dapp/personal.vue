@@ -35,13 +35,25 @@
       </div>
     </div>
 
-    <!-- <div class="recommend">
-      <div class="title">动态推荐记录</div>
-      <div class="recommendList" v-for="(v, i) in list" :key="i">
-        <div class="left">{{ v.name }}</div>
-        <div class="right">{{ v.date }}</div>
+    <div class="recommend">
+      <div class="title">
+        <div>动态推荐奖励</div>
+        <div>{{ listobj.balance }}&nbsp;EAT</div>
       </div>
-    </div> -->
+      <!-- <div  v-show="list||list.length==0" class="recommendList" v-for="(v, i) in list" :key="i">
+        <div class="left">{{ v.address }}</div>
+        <div class="right">{{ v.rewards }}EAT</div>
+        <div class="right">{{ v.loss }}EAT</div>
+      </div> -->
+      <!-- <div class="recommendList">
+        <div class="left">123456789101</div>
+        <div class="right">11EAT</div>
+        <div class="right">22EAT</div>
+      </div> -->
+      <!-- <div  v-show="!list||list.length==0" class="recommendTips">
+        暂无记录
+      </div> -->
+    </div>
 
     <div class="visitList">
       <div
@@ -119,38 +131,15 @@ export default {
       canDeposit: false,
       choose: 0,
       add: "",
-      list: [
-        {
-          name: "西南社区 4165432",
-          coin: "5 EAT",
-          date: "02.12",
-        },
-        {
-          name: "西南社区 4165437",
-          coin: "10 EAT",
-          date: "02.12",
-        },
-        {
-          name: "西南社区 4165432",
-          coin: "5 EAT",
-          date: "02.12",
-        },
-        {
-          name: "西南社区 4165432",
-          coin: "5 EAT",
-          date: "02.12",
-        },
-        {
-          name: "西南社区 4165432",
-          coin: "5 EAT",
-          date: "02.12",
-        },
-      ],
+      list: [],
+      listobj: {
+        balance:0
+      },
       visitList: [
-        // {
-        //     title:'参与记录',
-        //     logo:require("../../assets/img/visit1.png")
-        // },
+        {
+          title: "参与记录",
+          logo: require("../../assets/img/visit1.png"),
+        },
         {
           title: "社交媒体",
           logo: require("../../assets/img/visit2.png"),
@@ -206,6 +195,31 @@ export default {
       web3 = web;
       address = id;
 
+      axios
+        .get(
+          `https://eatadd.com:8443/eatuser/getByAddress?address=${address}&pageNo=1&pageSize=10`
+        )
+        .then((res) => {
+          console.log(res);
+          if (res.data.result != undefined) {
+            this.listobj = res.data.result;
+          }
+          // for (let k in this.list) {
+          //   this.list[k].engageAddress =
+          //     this.list[k].engageAddress.substr(0, 4) +
+          //     "****" +
+          //     this.list[k].engageAddress.substr(
+          //       this.list[k].engageAddress.length - 4
+          //     );
+          //   this.list[k].address =
+          //     this.list[k].address.substr(0, 4) +
+          //     "****" +
+          //     this.list[k].address.substr(this.list[k].address.length - 4);
+          // }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
       // console.log(web3)
       this.add = id.substr(0, 4) + "****" + id.substr(id.length - 4);
       Ip = new web3.eth.Contract(
@@ -647,7 +661,10 @@ export default {
     text-align: center;
     width: 60%;
     margin: auto;
+    margin-top: 10px;
     .title {
+      display: flex;
+      justify-content: space-between;
       margin-bottom: 10px;
     }
     .recommendList {
@@ -735,5 +752,8 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.recommendTips {
+  text-align: center;
 }
 </style>

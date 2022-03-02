@@ -4,6 +4,16 @@
       <img src="../../assets/img/back.png" alt="" @click="back" />
       <div class="title">{{ title }}</div>
     </div>
+    
+    <div class="content fz12" v-if="title == '参与记录'">
+      <div class="listTips indent0" v-show="!list||list.length==0">
+        暂无记录
+      </div>
+      <div  v-show="list||list.length!=0" class="listitem indent0" v-for="(v,i) in list" :key="i">
+        <div>黑洞扫描</div>
+        <div>{{v.createTime}}</div>
+      </div>
+    </div>
     <div class="content fz12" v-if="title == '版权'">
       <div class="indent0">{{ $t("message.dapp.copy1") }}</div>
       <div class="indent0">{{ $t("message.dapp.copy2") }}</div>
@@ -106,6 +116,7 @@
 import config from "@/config";
 import tools from "@/api/public.js";
 import { Toast } from "vant";
+import axios from "axios";
 var Ip, address, web3;
 export default {
   data() {
@@ -119,6 +130,7 @@ export default {
       mrtN: "0",
       coverShow: false,
       markShow: false,
+      list:[]
     };
   },
   mounted() {
@@ -127,6 +139,16 @@ export default {
       let { web, id } = res;
       web3 = web;
       address = id;
+
+      axios
+        .get(`https://eatadd.com:8443/eatorder/listAddress?engageAddress=${address}&pageNo=1&pageSize=10`)
+        .then((res) => {
+          this.list=res.data.result.records;
+          console.log(Boolean(this.list));
+        })
+        .catch((err) => {
+          console.log(err);
+        });
       Ip = new web3.eth.Contract(
         config["hyue"][config["key"]]["Hole"]["abi"],
         config["hyue"][config["key"]]["Hole"]["heyue"]
@@ -253,6 +275,9 @@ export default {
 .dappInfo {
   background: #191b1cff;
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 .nav {
   display: flex;
@@ -267,6 +292,7 @@ export default {
 .content {
   padding: 20px;
   width: 100%;
+  flex: 1;
   div {
     text-indent: 1em;
     line-height: 20px;
@@ -354,5 +380,16 @@ export default {
       margin-top: 20px;
     }
   }
+}
+.listitem{
+  display: flex;
+  justify-content: space-between;
+}
+.listTips{
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
 }
 </style>
