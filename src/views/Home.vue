@@ -10,20 +10,11 @@
             alt=""
             width="337px"
           />
-          <div class="notice_nav" @click="toNoticeList">
-            <van-notice-bar
-              left-icon="volume-o"
-              scrollable
-              color="#fff"
-              background="rgba(236, 249, 255,0)"
-              style="
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 5px;
-              "
-            >
-              {{ notices }}
-            </van-notice-bar>
-          </div>
+		  <div class="notice_nav" @click="toNoticeList">
+			  <van-notice-bar left-icon="volume-o" scrollable  color="#fff" background="rgba(236, 249, 255,0)" style="border: 1px solid rgba(255, 255, 255,0.2);border-radius: 5px;">
+			    {{notices}}
+			  </van-notice-bar>
+		  </div>
 
           <div class="navList">
             <div class="navItem mart-10">
@@ -43,26 +34,22 @@
             </div>
           </div>
         </div>
-
-        <div style="margin-top: 20px">
-          <el-carousel
-            :height="isphone ? '190px' : '600px'"
-            style="max-width: 1200px; margin: auto"
-            class="carousel_nav"
-          >
-            <el-carousel-item v-for="(item, index) in banners" :key="index">
-              <div class="" style="text-align: center">
-                <img :src="item.url" style="width: 100%" />
-              </div>
-            </el-carousel-item>
-            <el-carousel-item v-for="(item, index) in banners" :key="index">
-              <div class="" style="text-align: center">
-                <img :src="item.url" style="width: 100%" />
-              </div>
-            </el-carousel-item>
-          </el-carousel>
-        </div>
-
+		
+		<div style="margin-top: 20px;">
+			<el-carousel :height="isphone? '190px' : '600px'"  class="carousel_nav">
+			 <el-carousel-item v-for="(item,index) in banners" :key="index">
+			  <div class="" style="text-align: center;">
+				<img :src="item.url" style="object-fit: cover;width: 100%;">
+			  </div>
+			 </el-carousel-item>
+			 <el-carousel-item v-for="(item,index) in banners" :key="index">
+			  <div class="" style="text-align: center;">
+			 		<img :src="item.url"  style="object-fit: cover;width: 100%;">
+			  </div>
+			 </el-carousel-item>
+		   </el-carousel>
+		</div>
+		
         <div class="headerContent">
           <div class="headerBody">
             <div class="bodyLeft" @click="openMark1">
@@ -103,9 +90,7 @@
             </div>
             <div class="priceItem">
               <div class="priceText">{{ $t("message.homepage.price4") }}</div>
-              <div class="priceToken">
-                <img src="../assets/img/aa6.png" @click="goUser" alt="" />
-              </div>
+              <div class="priceToken">@{{ price4 }}</div>
             </div>
           </div>
         </div>
@@ -563,7 +548,7 @@ export default {
   },
   data() {
     return {
-      isphone: false,
+	  isphone: false,
       num: "",
       invited: "",
       shouldDisable: false,
@@ -593,20 +578,19 @@ export default {
       popLodding: false, // 弹框提交 加载状态
       popType: 4, // 1: 质押  2 ： 赎回  3： 获取勋章   4： 获取lp
       showpop: false,
-      notices: "", // 通告
-      banners: [
-        { url: require("@/assets/img/bannar1.jpg") },
-        { url: require("@/assets/img/bannar2.jpg") },
-        { url: require("@/assets/img/bannar3.jpg") },
-      ],
+	  notices: '', // 通告
+	  banners:[
+		  {url: require('@/assets/img/bannar1.jpg')},
+		  {url: require('@/assets/img/bannar2.jpg')}
+	  ]
     };
   },
   mounted() {
-    if (/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)) {
-      this.isphone = true;
-    } else {
-      this.isphone = false;
-    }
+	if (/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)) {
+		this.isphone = true;
+	} else {
+		this.isphone = false;
+	}
     this.linkWallet();
     this.langu = this.$i18n.locale;
     let a = "999999999999999999";
@@ -644,27 +628,28 @@ export default {
       // },
     })
       .then((res) => {
-        let { result, code } = res.data;
-        switch (code) {
-          case 0:
-            for (let i = 0; i < result.records.length; i++) {
-              console.log();
-              this.notices += result.records[i].content + "。   ";
-            }
-            break;
-          default:
-            break;
-        }
+        let { result,code } = res.data
+		switch (code){
+			case 0:
+			    for(let i=0; i<result.records.length;i++){
+					console.log();
+					this.notices += result.records[i].content + '。   '
+				}
+				break;
+			default:
+				break;
+		}
+		
       })
       .catch(function (error) {
         alert("error");
       });
   },
   methods: {
-    toNoticeList() {
-      console.log("aaaa");
-      this.$router.push("./noticeList");
-    },
+	toNoticeList(){
+		console.log('aaaa');
+		this.$router.push('./noticeList')
+	},
     numToStr(num, code) {
       // const numStr = String(num);
       let newNum = "";
@@ -1244,23 +1229,20 @@ export default {
     },
     toScan() {
       // console.log(111);
-      this.$router.push("/dapp");
-    },
-    goUser() {
-      window.location.href =
-        "https://bscscan.com/token/0x0f77144eba9c24545aA520a03f9874C4f1f4850F#balances";
+      this.$router.push('/dapp')
     },
   },
 };
 </script>
 <style lang="scss" scoped>
-.carousel_nav {
-  ::v-deep .el-carousel__indicators {
-    display: none;
-  }
-  ::v-deep .el-carousel__arrow {
-    display: none;
-  }
+.carousel_nav{
+	::v-deep .el-carousel__indicators{
+		display: none;
+	}
+	::v-deep .el-carousel__arrow{
+		display: none;
+	}
+	
 }
 #root {
   height: 100%;
@@ -1737,9 +1719,8 @@ export default {
   border-radius: 3px;
   margin-top: 20px;
 }
-.notice_nav {
-  flex-grow: 2;
-  margin: 10px 20px 0;
+.notice_nav{
+  flex-grow: 2;margin: 10px 20px 0;
 }
 @media screen and (min-width: 1200px) {
   .navBox,
@@ -1750,7 +1731,7 @@ export default {
   .factionsBody {
     max-width: 1200px;
   }
-
+  
   .priceItem {
     flex-basis: 25%;
     -webkit-box-flex: 0;
@@ -1780,9 +1761,8 @@ export default {
   .factionsBody {
     max-width: 900px;
   }
-  .notice_nav {
-    flex-grow: 2;
-    margin: 10px 20px 0;
+  .notice_nav{
+  	  flex-grow: 2;margin: 10px 20px 0;
   }
 
   .priceItem {
@@ -1820,10 +1800,9 @@ export default {
     padding-left: 24px;
     padding-right: 24px;
   }
-  .notice_nav {
-    flex-grow: 2;
-    margin-top: 0px !important;
-    padding-bottom: 20px;
+  .notice_nav{
+  	  flex-grow: 2;margin-top: 0px !important;
+	  padding-bottom: 20px;
   }
 
   .priceItem {
@@ -1862,10 +1841,9 @@ export default {
     padding-right: 24px;
     flex-direction: column;
   }
-  .notice_nav {
-    flex-grow: 2;
-    margin-top: 0px !important;
-    padding-bottom: 20px;
+  .notice_nav{
+  	  flex-grow: 2;margin-top: 0px !important;
+	  padding-bottom: 20px;
   }
   .navList {
     width: 80%;

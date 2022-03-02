@@ -15,7 +15,6 @@ import recom from "./bian/recom.json";
 import Ip from './bian/Ip.json'
 import Hole from './bian/Hole.json'
 import Hole1 from './bian/Hole1.json'
-import debris from './bian/debris.json'
 
 var bian = {
     Url: 'https://bsc-dataseed1.binance.org',
@@ -94,12 +93,7 @@ var bian = {
 	recommend: {
         heyue: "0xba8d6ab40dda82847d38fdd8d93a39ac9c8a1300",
         abi: recom
-    },
-    debris: {
-        heyue: "0x7F8c9150Cb522d11F07a85BDbdb2F6Fb8A9174CB",
-        abi: debris
     }
-
 };
 
 export default bian;
