@@ -25,7 +25,7 @@
         </div>
         <div class="balanceItem">
           <div class="left">NFT</div>
-          <div class="right">{{ nftN }}</div>
+          <div class="right">{{ failTime }}</div>
         </div>
       </div>
       <div class="footerBtn">
@@ -81,7 +81,7 @@
           @change="changeAdr"
         />
       </div>
-      <div class="item">是否提取全部 Nft 碎片</div>
+      <div class="item" v-if="choose == 2">是否提取全部 Nft 碎片</div>
       <div class="btn" v-if="choose == 0">
         <div class="cancel" v-show="showAccredit1" @click="accredit(1)">
           授权Eat
@@ -224,17 +224,6 @@ export default {
         config["hyue"][config["key"]]["debris"]["abi"],
         config["hyue"][config["key"]]["debris"]["heyue"]
       );
-      debris.methods.minted(address).call((err, ret) => {
-        console.log(ret);
-        this.nftN = ret;
-      });
-      clearInterval(debrisTimer);
-      var debrisTimer = setInterval(() => {
-        debris.methods.minted(address).call((err, ret) => {
-          console.log(ret);
-          this.nftN = ret;
-        });
-      }, 5000);
       Eat = new web3.eth.Contract(bi[2].abi, bi[2].heyue);
       Mrt = new web3.eth.Contract(bi[3].abi, bi[3].heyue);
 
@@ -248,7 +237,9 @@ export default {
       Ip.methods.userInfo(address).call((err, ret) => {
         if (ret) {
           Hole.methods.ownerloss(address).call((er, re) => {
-            this.failTime = Number(ret["loss"]) + Number(re);
+            debris.methods.minted(address).call((e, r) => {
+              this.failTime = Number(ret["loss"]) + Number(re) - Number(r);
+            });
           });
           if (this.needOpen == address) {
             this.shouldOpen = true;
@@ -261,6 +252,12 @@ export default {
           this.mrtNum = ret["mrtamount"];
         }
       });
+      clearInterval(debrisTimer);
+      var debrisTimer = setInterval(() => {
+        debris.methods.minted(address).call((err, ret) => {
+          this.nftN = ret;
+        });
+      }, 5000);
     });
   },
   methods: {
@@ -404,7 +401,10 @@ export default {
             this.showAccredit1 = false;
             this.polling(ret, "充值成功");
             recommend.methods.recommend(address).call((e, r) => {
-              if (ret == "0x0000000000000000000000000000000000000000" || r == '') {
+              if (
+                ret == "0x0000000000000000000000000000000000000000" ||
+                r == ""
+              ) {
                 let verifyData = {
                   address: address,
                   parentAddress: this.invitedAddress,
@@ -571,7 +571,7 @@ export default {
       // console.log(222);
       debris.methods
         .mint(address, this.failTime)
-        .send({ from: this.address }, (err, ret) => {
+        .send({ from: address }, (err, ret) => {
           console.log(ret);
           if (ret) {
             this.polling(ret, "提取完成");

@@ -60,16 +60,18 @@
             v-for="(v, i) in communityList"
             :key="i"
           >
-            <div>{{ v.name }}</div>
-            <div>{{ v.coin }}</div>
+            <div>{{ v.engageAddress }}</div>
+            <div>{{ v.engageLp }}&nbsp;LP</div>
+            <div>{{ v.engageEat }}&nbsp;EAT</div>
           </div>
           <div
             class="list"
             :style="{ top: topUp + 'px' }"
             v-for="(val, ind) in communityList"
           >
-            <div>{{ val.name }}</div>
-            <div>{{ val.coin }}</div>
+            <div>{{ val.engageAddress }}</div>
+            <div>{{ val.engageLp }}&nbsp;LP</div>
+            <div>{{ val.engageEat }}&nbsp;EAT</div>
           </div>
         </div>
       </div>
@@ -98,44 +100,7 @@ var Ip, address, recommend, Eat, Mrt, web3, Event, Hole;
 export default {
   data() {
     return {
-      communityList: [
-        {
-          name: "0xfD****9cF8",
-          coin: "5 EAT",
-        },
-        {
-          name: "0x9b****91a1",
-          coin: "10 EAT",
-        },
-        {
-          name: "0x38****7842",
-          coin: "5 EAT",
-        },
-        {
-          name: "0x0f****acF9",
-          coin: "5 EAT",
-        },
-        {
-          name: "0x07****472C",
-          coin: "5 EAT",
-        },
-        {
-          name: "0xBb****1ec8",
-          coin: "5 EAT",
-        },
-        {
-          name: "0xf3****CB79",
-          coin: "5 EAT",
-        },
-        {
-          name: "0x58****7DAb",
-          coin: "5 EAT",
-        },
-        {
-          name: "0xD3****05f9",
-          coin: "5 EAT",
-        },
-      ],
+      communityList: [],
       showApply: false,
       coverShow: false,
       second: "",
@@ -162,6 +127,23 @@ export default {
     };
   },
   mounted() {
+    axios
+      .get("https://eatadd.com:8443/eatorder/find")
+      .then((res) => {
+        console.log(res)
+        this.communityList = res.data.result.records;
+        for (let k in this.communityList) {
+          this.communityList[k].engageAddress =
+            this.communityList[k].engageAddress.substr(0, 4) +
+            "****" +
+            this.communityList[k].engageAddress.substr(
+              this.communityList[k].engageAddress.length - 4
+            );
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
     tools.testMASK().then((res) => {
       let { web, id } = res;
       web3 = web;
@@ -534,6 +516,10 @@ export default {
           line-height: 24px;
           height: 24px;
           position: relative;
+          div{
+            flex: 1;
+            text-align: center;
+          }
         }
       }
     }
