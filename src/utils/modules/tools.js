@@ -20,8 +20,8 @@ Vue.prototype.$date = (date) => {
 
 }
 
-import myDialog from '@/components/myDialog.vue'
-Vue.component('myDialog', myDialog)
+// import myDialog from '@/components/myDialog.vue'
+// Vue.component('myDialog', myDialog)
 
 // 格式化长id
 Vue.prototype.$getStr = (str) => {
