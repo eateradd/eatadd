@@ -1,5 +1,6 @@
 import request from '@/api/request.js'
 
+// 登录
 
 export function login(data) {
   return request({
@@ -9,7 +10,7 @@ export function login(data) {
   })
 }
 
-
+// banner
 export function gethomebannarList(query) {
   return request({
     url: '/banner/find',
@@ -42,6 +43,8 @@ export function deletehomebannar(query) {
   })
 }
 
+// 公告
+
 export function getNotice(query) {
   return request({
     url: '/announcement/find',
@@ -71,5 +74,39 @@ export function eidNotice(query) {
     url: '/announcement/update',
     method: 'post',
     data: query
+  })
+}
+
+//  问答
+
+export function addQA(query) {
+  return request({
+    url: '/question_answer/save',
+    method: 'post',
+    data: query
+  })
+}
+
+export function getQAList(query) {
+  return request({
+    url: '/question_answer/find',
+    method: 'get',
+    params: {pageNo:1,pageSize:10}
+  })
+}
+
+export function eidQA(query) {
+  return request({
+    url: '/question_answer/update',
+    method: 'post',
+    data: query
+  })
+}
+
+export function deletQA(query) {
+  return request({
+    url: '/question_answer/delete',
+    method: 'get',
+    params: query
   })
 }

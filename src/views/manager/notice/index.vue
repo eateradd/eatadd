@@ -2,12 +2,12 @@
 	<div class="content">
 		<el-button type @click="showPop(1)">新增公告</el-button>
 		<el-table :data="activities" style="width: 100%">
-		    <el-table-column label="Date">
+		    <el-table-column align="center" label="创建时间">
 				<template slot-scope="scope">
 				  <div class="van-multi-ellipsis--l2">{{mpnent(scope.row.createTime)}}</div>
 				</template>
 			</el-table-column>
-			<el-table-column label="标题">
+			<el-table-column align="center" label="标题">
 				<template slot-scope="scope">
 					<div class="van-multi-ellipsis--l2">
 						{{scope.row.title}}
@@ -15,7 +15,7 @@
 				</template>
 				
 			</el-table-column>
-		    <el-table-column label="内容">
+		    <el-table-column  align="center" label="内容">
 				<template slot-scope="scope">
 					<div class="van-multi-ellipsis--l2">
 						{{scope.row.content}}
@@ -23,10 +23,25 @@
 				</template>
 				
 		    </el-table-column>
-		    <el-table-column align="right" label="Name">
+			<el-table-column align="center" label="项目">
+				<template slot-scope="scope">
+					<div class="van-multi-ellipsis--l2">
+						{{scope.row.projectId == 1?'黑洞扫描': '数据协议'}}
+					</div>
+				</template>
+			</el-table-column>
+			
+			<el-table-column align="center" label="是否显示">
+				<template slot-scope="scope">
+					<div class="van-multi-ellipsis--l2">
+						{{scope.row.status?'显示': '隐藏'}}
+					</div>
+				</template>
+			</el-table-column>
+		    <el-table-column  align="center" label="操作">
 		      <template slot-scope="scope">
-		        <el-button  size="mini"  @click="handleEdit(scope.$index, scope.row)">Edit</el-button>
-		        <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)">Delete</el-button>
+		        <el-button  size="mini"  @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+		        <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
 		      </template>
 		    </el-table-column>
 		  </el-table>
@@ -35,7 +50,7 @@
 		
 		
 		<!-- 弹框 -->
-		<el-dialog :visible.sync="dialogVisible" :width="isphone ? '320px' : '50%'">
+		<el-dialog :visible.sync="dialogVisible" :width="isphone ? '320px' : '50%'" :before-close="handleClose">
 		  <el-form :label-position="labelPosition" label-width="80px" :model="formLabelAlign">
 			  <el-form-item label="标题">
 			    <el-input v-model="formLabelAlign.title"></el-input>
@@ -45,10 +60,20 @@
 		    </el-form-item>
 		    <el-form-item label="是否显示">
 		      <el-select v-model="formLabelAlign.type" placeholder="请选择">
-		          <el-option :key="0" label="显示" :value="0"> </el-option>
-				  <el-option :key="1" label="不显示" :value="1"> </el-option>
+		          <el-option :key="0" label="隐藏" :value="0"> </el-option>
+				  <el-option :key="1" label="显示" :value="1"> </el-option>
 		        </el-select>
 		    </el-form-item>
+			<el-form-item label="所属项目">
+				<el-select v-model="formLabelAlign.appName" placeholder="请选择">
+				  <el-option
+					v-for="item in options"
+					:key="item.value"
+					:label="item.label"
+					:value="item.value">
+				  </el-option>
+				</el-select>
+		  </el-form-item>
 		  </el-form>
 		  
 		  <span slot="footer" class="dialog-footer">
@@ -75,11 +100,19 @@
 				labelPosition: 'right',
 				formLabelAlign: {
 				  name: '',
-				  type: '',
+				  type: 1,
 				  title: '',
-				  id: ''
+				  id: '',
+				  appName: '1'
 				},
-				popType: 1
+				popType: 1,
+				options: [{
+				  value: '1',
+				  label: '黑洞扫描'
+				}, {
+				  value: '2',
+				  label: '数据协议'
+				}],
 			}
 		},
 		created() {
@@ -112,6 +145,7 @@
 						content: item.content,
 						type: item.status,
 						title: item.title,
+						appName: String(item.projectId),
 						id: item.id
 					}
 				}
@@ -126,12 +160,14 @@
 					content: this.formLabelAlign.content,
 					status: this.formLabelAlign.type,
 					title: this.formLabelAlign.title,
+					projectId: this.formLabelAlign.appName,
 					id: this.formLabelAlign.id
 				}
 				if(this.popType == 1){
 					addNotice(parm).then(res=>{
 						Toast("提交成功");
 						this.dialogVisible = false
+						this.getList()
 					}).catch(function (error) {
 					    Toast.fail("提交失败");
 						this.dialogVisible = false
@@ -140,6 +176,7 @@
 					eidNotice(parm).then(res=>{
 						Toast("提交成功");
 						this.dialogVisible = false
+						this.getList()
 					}).catch(function (error) {
 					    Toast.fail("提交失败");
 						this.dialogVisible = false
@@ -155,6 +192,16 @@
 				deletNotice({id:row.id}).then(res=>{
 					this.getList()
 				})
+			},
+			handleClose(done){
+				this.formLabelAlign = {
+				  name: '',
+				  type: 1,
+				  title: '',
+				  id: '',
+				  appName: '1'
+				}
+				done()
 			}
 		}
 	}

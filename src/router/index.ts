@@ -81,8 +81,8 @@ const routes: Array<RouteConfig> = [
 	    path: '/notice',
 	    name: 'setting',
 	    component: () => import('@/layout'),
-	    redirect: '/bannar',
-		  children: [
+	    redirect: '/notice',
+		children: [
 		    {
 		      path: '/notice',
 		      component: () => import('@/views/manager/notice/index.vue'),
@@ -90,7 +90,21 @@ const routes: Array<RouteConfig> = [
 		      meta: { title: '公告设置', icon: 'nested', affix: true }
 		    },
 		  ]
-		},
+	},
+	{
+	    path: '/QA',
+	    name: 'QA',
+	    component: () => import('@/layout'),
+	    redirect: '/QA',
+		  children: [
+		    {
+		      path: '/QA',
+		      component: () => import('@/views/manager/QorA/index.vue'),
+		      name: 'QorA',
+		      meta: { title: '问答设置', icon: 'nested', affix: true }
+		    },
+		  ]
+	},
 ]
 
 const router = new VueRouter({

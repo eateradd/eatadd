@@ -42,11 +42,6 @@
 				<img :src="item.url" style="object-fit: cover;width: 100%;">
 			  </div>
 			 </el-carousel-item>
-			 <el-carousel-item v-for="(item,index) in banners" :key="index">
-			  <div class="" style="text-align: center;">
-			 		<img :src="item.url"  style="object-fit: cover;width: 100%;">
-			  </div>
-			 </el-carousel-item>
 		   </el-carousel>
 		</div>
 		
@@ -581,7 +576,9 @@ export default {
 	  notices: '', // 通告
 	  banners:[
 		  {url: require('@/assets/img/bannar1.jpg')},
-		  {url: require('@/assets/img/bannar2.jpg')}
+		  {url: require('@/assets/img/bannar2.jpg')},
+		  {url: require('@/assets/img/bannar1.jpg')},
+		  {url: require('@/assets/img/bannar2.jpg')},
 	  ]
     };
   },
@@ -633,7 +630,10 @@ export default {
 			case 0:
 			    for(let i=0; i<result.records.length;i++){
 					console.log();
-					this.notices += result.records[i].content + '。   '
+					if(result.records[i].status == 1){
+						this.notices += result.records[i].content + '。   '
+					}
+					
 				}
 				break;
 			default:

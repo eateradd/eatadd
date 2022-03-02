@@ -10,6 +10,9 @@
 						<span v-if="item.status == 1">显示</span>
 						<span v-else-if="item.status == 0">隐藏</span>
 					</p>
+					<p>
+						所属项目：{{item.projectId == 1?'黑洞扫描': '数据协议'}}
+					</p>
 					<p class="edit_btn">
 						<el-button type="primary" icon="el-icon-edit" @click="editaffiche(item)">修改</el-button>
 						<el-button type="danger" icon="el-icon-delete" @click="deletnotice(item.id)">删除</el-button>
@@ -36,6 +39,16 @@
 						<el-select v-model="addlist.bannerType" placeholder="是否显示">
 							<el-option label="显示" value="1"></el-option>
 							<el-option label="隐藏" value="0"></el-option>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="所属项目">
+						<el-select v-model="addlist.appName" placeholder="请选择">
+						  <el-option
+							v-for="item in options"
+							:key="item.value"
+							:label="item.label"
+							:value="item.value">
+						  </el-option>
 						</el-select>
 					</el-form-item>
 				</el-form>
@@ -98,8 +111,16 @@
 					imageUrlcopy: "",
 					imgKey: "",
 					imgBucket: "",
-					sysNum: ''
+					sysNum: '',
+					appName: ''
 				},
+				options: [{
+				  value: '1',
+				  label: '黑洞扫描'
+				}, {
+				  value: '2',
+				  label: '数据协议'
+				}],
 			};
 		},
 		created() {
@@ -155,6 +176,7 @@
 				let parm = {
 					fpath: this.addlist.img,
 					status: parseInt(this.addlist.bannerType),
+					projectId: parseInt(this.addlist.appName),
 					title: this.addlist.content
 				}
 				addhomebannar(parm).then(res => {
@@ -198,6 +220,7 @@
 					content: val.title,
 					noticeId: val.id,
 					imageUrlcopy: val.fpath,
+					appName: String(val.projectId),
 					bannerType: String(val.status)
 				};
 			},
@@ -208,6 +231,7 @@
 					fpath: this.addlist.img,
 					status: parseInt(this.addlist.bannerType),
 					title: this.addlist.content,
+					projectId: parseInt(this.addlist.appName),
 					id: this.addlist.noticeId
 				}
 				editehomebannar(parm).then(res => {
