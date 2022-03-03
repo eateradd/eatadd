@@ -1,6 +1,10 @@
 import { login } from '@/api/manager.js'
 import { getToken, setToken, removeToken } from '@/utils/auth'
+<<<<<<< HEAD
 import router from '@/router'
+=======
+import router, { resetRouter } from '@/router'
+>>>>>>> 576f812de8d135fa9076d80f21b9e7855705e943
 
 const state = {
   token: getToken(),

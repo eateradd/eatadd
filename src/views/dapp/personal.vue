@@ -31,7 +31,6 @@
       <div class="footerBtn">
         <div class="btn" @click="showModel(1)">提现</div>
         <div class="btn" @click="showModel(0)">充值</div>
-        <div class="btn" @click="showModel(2)">NFT提取</div>
       </div>
     </div>
 
@@ -74,14 +73,17 @@
       </div>
     </div>
 
-    <div class="mark" v-show="markShow">
+    <div
+      class="mark"
+      :style="{ height: choose == 0 ? '220px' : '200px' }"
+      v-show="markShow"
+    >
       <div class="title" v-if="choose == 0">充值</div>
       <div class="title" v-if="choose == 1">提现</div>
-      <div class="title" v-if="choose == 2">提取</div>
-      <div class="item" v-if="choose == 1 || choose == 0">
+      <div class="item">
         EAT <input type="text" v-model="eatN" @input="showAccredit(1)" />
       </div>
-      <div class="item" v-if="choose == 1 || choose == 0">
+      <div class="item">
         MRT <input type="text" v-model="mrtN" @input="showAccredit(2)" />
       </div>
       <div class="item" v-if="choose == 0">
@@ -106,7 +108,6 @@
         <div class="cancel" @click="close">否</div>
         <div class="config" v-if="choose == 0" @click="deposit">是</div>
         <div class="config" v-if="choose == 1" @click="withdraw">是</div>
-        <div class="config" v-if="choose == 2" @click="withdrawNft">是</div>
       </div>
     </div>
 
@@ -119,8 +120,7 @@ import config from "@/config";
 import tools from "@/api/public.js";
 import bi from "@/abi/bi";
 import { Toast } from "vant";
-import axios from "axios";
-var Ip, address, recommend, Eat, Mrt, web3, BN, Hole, debris;
+var Ip, address, recommend, Eat, Mrt, web3, BN, Hole;
 export default {
   data() {
     return {
@@ -128,7 +128,6 @@ export default {
       markShow: false,
       showAccredit1: false,
       showAccredit2: false,
-      canDeposit: false,
       choose: 0,
       add: "",
       list: [],
@@ -184,8 +183,7 @@ export default {
       mrtNum: "",
       isAdr: false,
       pushNum: "",
-      failTime: "",
-      nftN: "0",
+      failTime:"",
     };
   },
   mounted() {
@@ -194,6 +192,8 @@ export default {
       let { web, id } = res;
       web3 = web;
       address = id;
+      let num = "8.22";
+      console.log(this.numToStrUp(num), 1);
 
       axios
         .get(
@@ -226,7 +226,7 @@ export default {
         config["hyue"][config["key"]]["Hole1"]["abi"],
         config["hyue"][config["key"]]["Hole1"]["heyue"]
       );
-      Hole = new web3.eth.Contract(
+      Hole =  new web3.eth.Contract(
         config["hyue"][config["key"]]["Hole"]["abi"],
         config["hyue"][config["key"]]["Hole"]["heyue"]
       );
@@ -244,7 +244,6 @@ export default {
       recommend.methods.recommend(address).call((err, ret) => {
         if (ret != "0x0000000000000000000000000000000000000000") {
           this.invitedAddress = ret;
-          this.canDeposit = true;
           this.isAdr = true;
         }
       });
@@ -259,11 +258,11 @@ export default {
             this.shouldOpen = true;
           }
           this.eatNum = Number(
-            ret["eatamount"].slice(0, ret["eatamount"].length - 18) +
+            ret[1].slice(0, ret[1].length - 18) +
               "." +
-              ret["eatamount"].slice(ret["eatamount"].length - 18)
+              ret[1].slice(ret[1].length - 18)
           );
-          this.mrtNum = ret["mrtamount"];
+          this.mrtNum = ret[2];
         }
       });
       clearInterval(debrisTimer);
@@ -312,7 +311,6 @@ export default {
         }
         changeNum = num + newNum;
       }
-      console.log(changeNum);
       this.pushNum = changeNum;
       return changeNum;
     },
@@ -360,37 +358,22 @@ export default {
       }
       Eat.methods.balanceOf(this.invitedAddress).call((err, ret) => {
         if (ret == 0) {
-          // this.canDeposit=false
           this.invitedAddress = "";
           Toast.fail("推荐节点余额不能为0");
           return;
+        }
+      });
+      recommend.methods.recommend(this.invitedAddress).call((err, ret) => {
+        if (ret != "0x0000000000000000000000000000000000000000") {
+          // this.popData.adr = ret;
         } else {
-          recommend.methods.recommend(this.invitedAddress).call((err, ret) => {
-            if (ret != "0x0000000000000000000000000000000000000000") {
-              if (
-                this.invitedAddress != address &&
-                (this.invitedAddress != "" ||
-                  this.invitedAddress !=
-                    "0x0000000000000000000000000000000000000000") &&
-                this.invitedAddress.length == 42 &&
-                this.invitedAddress.slice(0, 2) == "0x"
-              ) {
-                this.canDeposit = true;
-              }
-            } else {
-              // this.canDeposit=false
-              this.invitedAddress = "";
-              Toast.fail("推荐节点无效");
-            }
-          });
+          this.invitedAddress = "";
+          Toast.fail("推荐节点无效");
         }
       });
     },
     // 充值
     deposit() {
-      if (this.canDeposit == false) {
-        return;
-      }
       if (this.invitedAddress == "") {
         alert("邀请人地址不能为空");
         return;
@@ -443,46 +426,38 @@ export default {
         Toast.fail("正在扫描中,无法提现");
         return;
       }
-      Ip.methods.award(address).call((err, ret) => {
-        if (ret != 0) {
-          Toast.fail("尚未结算，无法提现");
-          return;
-        } else {
-          if (this.eatN != 0) {
-            this.numToStrUp(this.eatN);
-          } else {
-            this.pushNum = this.eatN;
-          }
-          Ip.methods
-            .withdraw(this.pushNum, this.mrtN)
-            .send({ from: address }, (er, re) => {
-              console.log(re);
-              if (re) {
-                Toast.loading({
-                  message: "正在提现...",
-                  forbidClick: true,
-                  duration: 0,
-                  overlay: true,
-                });
-                this.showAccredit1 = false;
-                this.polling(re, "提现成功");
-                this.close();
-              }
+      if (this.eatN != 0) {
+        this.numToStrUp(this.eatN);
+      } else {
+        this.pushNum = this.eatN;
+      }
+      Ip.methods
+        .withdraw(this.pushNum, this.mrtN)
+        .send({ from: address }, (err, ret) => {
+          console.log(ret);
+          if (ret) {
+            Toast.loading({
+              message: "正在提现...",
+              forbidClick: true,
+              duration: 0,
+              overlay: true,
             });
-        }
-      });
+            this.showAccredit1 = false;
+            this.polling(ret, "提现成功");
+            this.close();
+          }
+        });
     },
     // 授权
     accredit(code) {
-      console.log(code);
       if (code == 1) {
         Eat.methods
-          .allowance(address, config["hyue"][config["key"]]["Hole1"]["heyue"])
+          .allowance(address, config["hyue"][config["key"]]["Hole"]["heyue"])
           .call((err, ret) => {
             if (Number(ret) < Number(this.numToStrUp(this.eatN))) {
               Eat.methods
                 .approve(
-                  config["hyue"][config["key"]]["Hole1"]["heyue"],
+                  config["hyue"][config["key"]]["Hole"]["heyue"],
                   this.numToStrUp(this.eatN) + "0000"
                 )
                 .send({ from: address }, (er, re) => {
@@ -501,12 +476,12 @@ export default {
           });
       } else if (code == 2) {
         Mrt.methods
-          .allowance(address, config["hyue"][config["key"]]["Hole1"]["heyue"])
+          .allowance(address, config["hyue"][config["key"]]["Hole"]["heyue"])
           .call((err, ret) => {
             if (Number(ret) < Number(this.mrtN)) {
               Mrt.methods
                 .approve(
-                  config["hyue"][config["key"]]["Hole1"]["heyue"],
+                  config["hyue"][config["key"]]["Hole"]["heyue"],
                   String(this.mrtN * 10 ** 4)
                 )
                 .send({ from: address }, (er, re) => {
@@ -535,15 +510,16 @@ export default {
             Toast.success(msg);
             Ip.methods.userInfo(address).call((err, ret) => {
               if (ret) {
-                console.log(
-                  ret["eatamount"].slice(ret["eatamount"].length - 18)
-                );
+                if (this.needOpen == address) {
+                  this.shouldOpen = true;
+                }
+                console.log(ret[1].slice(ret[1].length - 18));
                 this.eatNum = Number(
-                  ret["eatamount"].slice(0, ret["eatamount"].length - 18) +
+                  ret[1].slice(0, ret[1].length - 18) +
                     "." +
-                    ret["eatamount"].slice(ret["eatamount"].length - 18)
+                    ret[1].slice(ret[1].length - 18)
                 );
-                this.mrtNum = ret["mrtamount"];
+                this.mrtNum = ret[2];
               }
             });
             clearInterval(timer);
@@ -555,14 +531,14 @@ export default {
     goInfo(val) {
       if (val == "版本") {
         return;
-      } else {
+      } else{
         this.$router.push("/dapp/info?title=" + val);
       }
     },
     showAccredit(code) {
       if (code == 1) {
         Eat.methods
-          .allowance(address, config["hyue"][config["key"]]["Hole1"]["heyue"])
+          .allowance(address, config["hyue"][config["key"]]["Hole"]["heyue"])
           .call((err, ret) => {
             if (Number(ret) < Number(this.numToStrUp(this.eatN))) {
               this.showAccredit1 = true;
@@ -570,7 +546,7 @@ export default {
           });
       } else if (code == 2) {
         Mrt.methods
-          .allowance(address, config["hyue"][config["key"]]["Hole1"]["heyue"])
+          .allowance(address, config["hyue"][config["key"]]["Hole"]["heyue"])
           .call((err, ret) => {
             if (Number(ret) < Number(this.mrtN)) {
               this.showAccredit2 = true;
@@ -634,7 +610,7 @@ export default {
       }
     }
     .balanceInfo {
-      margin-top: 20px;
+      margin-top: 30px;
       .balanceItem {
         display: flex;
         justify-content: space-between;
@@ -703,6 +679,8 @@ export default {
   z-index: 998;
 }
 .mark {
+  width: 325px;
+  // background: #161616ff;
   background: #2c2c2dff;
 
   // background: #00b1ef;
@@ -715,9 +693,6 @@ export default {
   right: 0;
   bottom: 0;
   margin: auto;
-  width: fit-content;
-  // box-sizing: content-box;
-  height: fit-content;
   .title {
     text-align: center;
     font-size: 20px;
