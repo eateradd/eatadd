@@ -1,30 +1,27 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-
+import getters from './getters.js'
+// import web3 from './modules/web3'
+// console.log(web3)
 Vue.use(Vuex)
 
-export default new Vuex.Store({
+// https://webpack.js.org/guides/dependency-management/#requirecontext
+const modulesFiles = require.context('./modules', true, /\.js$/ || /\.ts$/)
 
-  state: {
-
+// you do not need `import app from './modules/app'`
+// it will auto require all vuex module from modules file
+const modules = modulesFiles.keys().reduce((modules, modulePath) => {
+  // set './app.js' => 'app'
+  const moduleName = modulePath.replace(/^\.\/(.*)\.\w+$/, '$1')
+  const value = modulesFiles(modulePath)
   
-}
-,
-  mutations: {
+  modules[moduleName] = value.default
+  return modules
+}, {})
 
-  
-}
-,
-  actions: {
+const store = new Vuex.Store({
+  modules,
+  getters
+})
 
-  
-}
-,
-  modules: {
-
-  
-}
-
-
-}
-)
+export default store
