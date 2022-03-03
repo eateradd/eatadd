@@ -15,12 +15,16 @@
         /> -->
       </div>
       <div class="scanBtn">
+        <div class="scanTips fz16" style="margin-bottom: 15px">
+          奇点倒计时：{{ hour }}&nbsp;时&nbsp;{{ min }}&nbsp;分&nbsp;{{
+            sec
+          }}&nbsp;秒
+        </div>
         <div class="scanItem">
           <div class="scan" @click="scanShow">扫描</div>
-          <!-- <div class="scan" @click="luckily">开奖</div> -->
+          <div class="scan" @click="luckily">奇点</div>
           <div class="scan" @click="self">结算</div>
         </div>
-        <!-- <div class="scanTips fz16">全网参与次数:{{ time }}</div> -->
         <div class="scanTips fz16">全网销毁EAT数量:{{ destroyEat }}</div>
       </div>
     </div>
@@ -63,7 +67,7 @@
           <div
             class="list"
             :style="{ top: topUp + 'px' }"
-            v-for="val in communityList"
+            v-for="(val, ind) in communityList"
           >
             <div>{{ val.engageAddress }}</div>
             <div>{{ val.engageLp }}&nbsp;LP</div>
@@ -76,6 +80,7 @@
       <div class="item">
         次数 <input type="text" v-model="scanTime" @input="thanScan()" />
       </div>
+      <div>最高可参与&emsp;{{ maxTime }}&emsp;次</div>
       <div class="btn">
         <div class="cancel" @click="close">否</div>
         <div class="config" @click="scanAdd">是</div>
@@ -109,7 +114,16 @@ export default {
       scanTime: 0,
       eatNum: 0,
       mrtNum: 0,
-      maxTime:0,
+      maxTime: 0,
+      luckily1: "",
+      luckily2: "",
+      luckily3: "",
+      dayTime: "",
+      lastTime: "",
+      hour: "",
+      min: "",
+      sec: "",
+      perDay: "",
     };
   },
   mounted() {
@@ -151,28 +165,74 @@ export default {
         config["hyue"][config["key"]]["recommend"]["heyue"]
       );
 
-      Ip.methods.results("1", "0").call((err, ret) => {
-        console.log(ret);
-      });
-      Ip.methods.results("1", "1").call((err, ret) => {
-        console.log(ret);
-      });
-      Ip.methods.results("1", "2").call((err, ret) => {
-        console.log(ret);
-      });
-
-      Ip.methods.userInfo(address).call((err, ret) => {
-        if (ret) {
-          Hole.methods.ownerloss(address).call((er, re) => {
-            this.failTime = Number(ret["loss"]) + Number(re);
+      Ip.methods.award(address).call((err, ret) => {
+        this.dayTime = ret;
+        console.log(this.dayTime);
+        Ip.methods.day().call((er, re) => {
+          this.perDay = re;
+          Ip.methods.lasttime(Number(re)).call((e, r) => {
+            Ip.methods.cycle().call((ee, rr) => {
+              this.lastTime = Number(r) + Number(rr);
+              var downTimer = setInterval(() => {
+                var d = new Date();
+                Ip.methods.bonuses().call((err, ret) => {
+                  this.numToStr(ret);
+                });
+                if (
+                  Math.floor(d.getTime() / 1000) < this.lastTime &&
+                  this.luckily3 == 0
+                ) {
+                  this.hour = Math.floor(
+                    (this.lastTime - Math.floor(d.getTime() / 1000)) / 60 / 60
+                  );
+                  this.min = Math.floor(
+                    ((this.lastTime - Math.floor(d.getTime() / 1000)) / 60) % 60
+                  );
+                  this.sec = Math.floor(
+                    (this.lastTime - Math.floor(d.getTime() / 1000)) % 60
+                  );
+                } else {
+                  this.hour = 0;
+                  this.min = 0;
+                  this.sec = 0;
+                }
+              }, 1000);
+            });
           });
-          this.eatNum = Number(
-            ret[1].slice(0, ret[1].length - 18) +
-              "." +
-              ret[1].slice(ret[1].length - 18)
-          );
-          this.mrtNum = ret[2];
-        }
+        });
+        Ip.methods.results(Number(this.dayTime), 0).call((er, re) => {
+          this.luckily1 = re;
+        });
+        Ip.methods.results(Number(this.dayTime), 1).call((er, re) => {
+          this.luckily2 = re;
+        });
+        Ip.methods.results(Number(this.dayTime), 2).call((er, re) => {
+          this.luckily3 = re;
+        });
+        Ip.methods.userInfo(address).call((er, re) => {
+          if (re) {
+            Hole.methods.ownerloss(address).call((e, r) => {
+              this.failTime = Number(re["loss"]) + Number(r);
+            });
+            this.eatNum = Number(
+              re["eatamount"].slice(0, re["eatamount"].length - 18) +
+                "." +
+                re["eatamount"].slice(re["eatamount"].length - 18)
+            );
+            // Ip.methods.lottery(address,String(this.dayTime)).call((e,r)=>{
+            // console.log(r)
+            this.failTime = re["loss"];
+            this.winTime = Number(re["total"]) - Number(re["loss"]);
+
+            // });
+            this.mrtNum = re["mrtamount"];
+            if (Math.floor(this.eatNum / 5) >= Number(this.mrtNum)) {
+              this.maxTime = this.mrtNum;
+            } else {
+              this.maxTime = Math.floor(this.eatNum / 5);
+            }
+          }
+        });
       });
 
       recommend.methods.recommend(address).call((err, ret) => {
@@ -190,13 +250,63 @@ export default {
     });
   },
   methods: {
-    scanShow() {
-      if (this.showScan == false) {
-        this.showScan = true;
-        this.coverShow = true;
+    numToStr(num) {
+      // const numStr = String(num);
+      let newNum = "";
+      if (num.length <= 18) {
+        let b = "";
+        for (let k = 0; k < 18 - num.length; k++) {
+          b += "0";
+        }
+        newNum = "0." + b + num;
       } else {
-        this.showScan = false;
-        this.coverShow = false;
+        let b = num.length - 18;
+        newNum = num.slice(0, b) + "." + num.slice(b);
+      }
+      let index = newNum.indexOf(".");
+      this.destroyEat = (
+        (Number(newNum.substring(0, index + 7)) * 40) / 14 +
+        98.8
+      ).toFixed(2);
+    },
+    numToStrUp(num) {
+      console.log(num);
+      // const numStr = String(num);
+      let newNum = "";
+      let index = num.indexOf(".");
+      let changeNum = "";
+      if (num == 0) {
+        return;
+      }
+      if (index != -1) {
+        console.log(1);
+        for (let i = 0; i < 18 - num.length + 1 + index; i++) {
+          newNum += "0";
+        }
+        changeNum = num.slice(0, index) + num.slice(index + 1) + newNum;
+      } else {
+        console.log(2);
+        for (let i = 0; i < 18; i++) {
+          newNum += "0";
+        }
+        changeNum = num + newNum;
+      }
+      console.log(changeNum);
+      this.pushNum = changeNum;
+      return changeNum;
+    },
+    scanShow() {
+      if (this.dayTime != 0) {
+        Toast.fail("已扫描，Eat冻结");
+        return false;
+      } else {
+        if (this.showScan == false) {
+          this.showScan = true;
+          this.coverShow = true;
+        } else {
+          this.showScan = false;
+          this.coverShow = false;
+        }
       }
     },
     close() {
@@ -217,40 +327,13 @@ export default {
             overlay: true,
           });
           this.polling(ret, "扫描完成");
-
-          let verifyData = {
-            address: address,
-            parentAddress: this.invitedAddress,
-          };
-          // axios
-          //   .post("https://eatadd.com:8443/eatuser/save", verifyData)
-          //   .then((res) => {
-          //     console.log(res);
-          //   })
-          //   .catch((err) => {
-          //     console.log(err);
-          //   });
-        }
-      });
-    },
-    // 开奖
-    self() {
-      Ip.methods.self().send({ from: address }, (err, ret) => {
-        if (ret) {
-          Toast.loading({
-            message: "扫描结束中...",
-            forbidClick: true,
-            duration: 0,
-            overlay: true,
-          });
-          this.polling(ret, "扫描结束");
+          this.showScan = false;
           let verifyData = {
             engageAddress: address,
-            engageEat: 5,
-            engageLp: 1,
-            prizeAddress: this.needOpen,
-            enterEat: 0.5,
-            winEat: 0.1,
+            engageEat: Number(this.scanTime * 5),
+            engageLp: Number(this.scanTime),
+            participation: Number(this.scanTime),
+            period: Number(this.perDay),
           };
           axios
             .post("https://eatadd.com:8443/eatorder/save", verifyData)
@@ -260,6 +343,39 @@ export default {
             .catch((err) => {
               console.log(err);
             });
+        }
+      });
+    },
+    // 开奖
+    luckily() {
+      var d = new Date();
+      console.log(this.dayTime);
+      if (
+        Math.floor(d.getTime() / 1000) >= this.lastTime &&
+        this.luckily3 == 0
+      ) {
+        Ip.methods.luckilystar().send({ from: address }, (err, ret) => {
+          console.log(ret);
+        });
+      } else if (
+        Math.floor(d.getTime() / 1000) < this.lastTime &&
+        this.luckily3 == 0
+      ) {
+        Toast.fail("未到奇点时间");
+      } else {
+        Toast.success("昨日奇点事件已完成");
+      }
+    },
+    // 结算
+    self() {
+      Ip.methods.award(address).call((err, ret) => {
+        console.log(this.luckily3, ret);
+        if (this.luckily3 != 0 && ret != 0) {
+          Ip.methods.selfaward().send({ from: address }, (err, ret) => {
+            console.log(ret);
+          });
+        } else {
+          Toast.fail("未到结算时间");
         }
       });
     },
@@ -276,27 +392,15 @@ export default {
       }, 1000);
     },
     thanScan() {
-        console.log(Math.floor(this.eatNum/5))
-        console.log(this.mrtNum)
-      if(Math.floor(this.eatNum/5)>Number(this.mrtNum)){
-        console.log(Math.floor(this.eatNum/5))
-        console.log(this.mrtNum)
-        this.maxTime = Math.floor('5'/5)
-        if(this.maxTime<this.scanTime){
-          console.log(this.scanTime)
-          console.log(this.maxTime)
-          Toast.fail('超出能够扫描的次数');
-          this.scanTime=0;
-        }
-      }else{
-        console.log(222)
-        this.maxTime = this.mrtNum
-        if(this.maxTime<this.scanTime){
-          console.log(this.scanTime)
-          console.log(this.maxTime)
-          Toast.fail('超出能够扫描的次数');
-          this.scanTime=0;
-        }
+      if (Math.floor(this.eatNum / 5) >= Number(this.mrtNum)) {
+        this.maxTime = this.mrtNum;
+      } else {
+        console.log(222);
+        this.maxTime = Math.floor(this.eatNum / 5);
+      }
+      if (this.maxTime < this.scanTime) {
+        Toast.fail("超出能够扫描的次数");
+        this.scanTime = 0;
       }
     },
   },

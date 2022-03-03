@@ -167,6 +167,46 @@ export default {
     });
   },
   methods: {
+    numToStr(num, code) {
+      // const numStr = String(num);
+      let newNum = "";
+      if (num.length <= 18) {
+        let b = "";
+        for (let k = 0; k < 18 - num.length; k++) {
+          b += "0";
+        }
+        newNum = "0." + b + num;
+      } else {
+        let b = num.length - 18;
+        newNum = num.slice(0, b) + "." + num.slice(b);
+      }
+      let index = newNum.indexOf(".");
+    },
+    numToStrUp(num) {
+      console.log(num);
+      // const numStr = String(num);
+      let newNum = "";
+      let index = num.indexOf(".");
+      let changeNum = "";
+      if (num == 0) {
+        return;
+      }
+      if (index != -1) {
+        console.log(1);
+        for (let i = 0; i < 18 - num.length + 1 + index; i++) {
+          newNum += "0";
+        }
+        changeNum = num.slice(0, index) + num.slice(index + 1) + newNum;
+      } else {
+        console.log(2);
+        for (let i = 0; i < 18; i++) {
+          newNum += "0";
+        }
+        changeNum = num + newNum;
+      }
+      this.pushNum = changeNum;
+      return changeNum;
+    },
     showModel() {
       if (this.markShow == false) {
         this.markShow = true;
@@ -186,10 +226,6 @@ export default {
     },
     // 提现
     withdraw() {
-      if (this.shouldOpen) {
-        Toast.fail("正在扫描中,无法提现");
-        return;
-      }
       if (this.eatN != 0) {
         this.numToStrUp(this.eatN);
       } else {
