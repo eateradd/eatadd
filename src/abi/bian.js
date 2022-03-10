@@ -15,6 +15,7 @@ import recom from "./bian/recom.json";
 import Ip from './bian/Ip.json'
 import Hole from './bian/Hole.json'
 import Hole1 from './bian/Hole1.json'
+import Hole2 from './bian/Hole2.json'
 import debris from './bian/debris.json'
 
 var bian = {
@@ -90,6 +91,10 @@ var bian = {
     Hole1: {
         heyue: "0x38Da2116DA0177bB7dE6CEe8FF4F2d483e7CEEB7",
         abi: Hole1
+    },
+    Hole2: {
+        heyue: "0x326799CD5cB24885c4b75FA41BB793dfeA61bBACe",
+        abi: Hole2
     },
 	recommend: {
         heyue: "0xba8d6ab40dda82847d38fdd8d93a39ac9c8a1300",

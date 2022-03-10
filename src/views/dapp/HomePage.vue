@@ -96,7 +96,7 @@ import tools from "@/api/public.js";
 import bi from "@/abi/bi";
 import { Toast } from "vant";
 import axios from "axios";
-var Ip, address, recommend, Eat, Mrt, web3, Event, Hole;
+var Ip, address, recommend, Eat, Mrt, web3, Event, Hole, Np;
 export default {
   data() {
     return {
@@ -130,7 +130,7 @@ export default {
     axios
       .get("https://eatadd.com:8443/eatorder/find")
       .then((res) => {
-        console.log(res)
+        console.log(res);
         this.communityList = res.data.result.records;
         for (let k in this.communityList) {
           this.communityList[k].engageAddress =
@@ -158,6 +158,10 @@ export default {
         config["hyue"][config["key"]]["Hole"]["abi"],
         config["hyue"][config["key"]]["Hole"]["heyue"]
       );
+      Np = new web3.eth.Contract(
+        config["hyue"][config["key"]]["Hole2"]["abi"],
+        config["hyue"][config["key"]]["Hole2"]["heyue"]
+      );
       Eat = new web3.eth.Contract(bi[2].abi, bi[2].heyue);
       Mrt = new web3.eth.Contract(bi[3].abi, bi[3].heyue);
       recommend = new web3.eth.Contract(
@@ -165,18 +169,20 @@ export default {
         config["hyue"][config["key"]]["recommend"]["heyue"]
       );
 
-      Ip.methods.award(address).call((err, ret) => {
+      Np.methods.award(address).call((err, ret) => {
         this.dayTime = ret;
         console.log(this.dayTime);
-        Ip.methods.day().call((er, re) => {
+        Np.methods.day().call((er, re) => {
           this.perDay = re;
-          Ip.methods.lasttime(Number(re)).call((e, r) => {
-            Ip.methods.cycle().call((ee, rr) => {
+          Np.methods.lasttime(Number(re)).call((e, r) => {
+            Np.methods.cycle().call((ee, rr) => {
               this.lastTime = Number(r) + Number(rr);
               var downTimer = setInterval(() => {
                 var d = new Date();
-                Ip.methods.bonuses().call((err, ret) => {
-                  this.numToStr(ret);
+                Np.methods.bonuses().call((err, ret) => {
+                  Ip.methods.bonuses().call((eee, rrr) => {
+                    this.numToStr(rrr,ret);
+                  });
                 });
                 if (
                   Math.floor(d.getTime() / 1000) < this.lastTime &&
@@ -200,16 +206,16 @@ export default {
             });
           });
         });
-        Ip.methods.results(Number(this.dayTime), 0).call((er, re) => {
+        Np.methods.results(Number(this.dayTime), 0).call((er, re) => {
           this.luckily1 = re;
         });
-        Ip.methods.results(Number(this.dayTime), 1).call((er, re) => {
+        Np.methods.results(Number(this.dayTime), 1).call((er, re) => {
           this.luckily2 = re;
         });
-        Ip.methods.results(Number(this.dayTime), 2).call((er, re) => {
+        Np.methods.results(Number(this.dayTime), 2).call((er, re) => {
           this.luckily3 = re;
         });
-        Ip.methods.userInfo(address).call((er, re) => {
+        Np.methods.userInfo(address).call((er, re) => {
           if (re) {
             Hole.methods.ownerloss(address).call((e, r) => {
               this.failTime = Number(re["loss"]) + Number(r);
@@ -250,18 +256,19 @@ export default {
     });
   },
   methods: {
-    numToStr(num) {
+    numToStr(num,nu) {
       // const numStr = String(num);
       let newNum = "";
-      if (num.length <= 18) {
+      let n = String(Number(num)+Number(nu))
+      if (n.length <= 18) {
         let b = "";
-        for (let k = 0; k < 18 - num.length; k++) {
+        for (let k = 0; k < 18 - n.length; k++) {
           b += "0";
         }
-        newNum = "0." + b + num;
+        newNum = "0." + b + n;
       } else {
-        let b = num.length - 18;
-        newNum = num.slice(0, b) + "." + num.slice(b);
+        let b = n.length - 18;
+        newNum = n.slice(0, b) + "." + n.slice(b);
       }
       let index = newNum.indexOf(".");
       this.destroyEat = (
@@ -318,7 +325,7 @@ export default {
     },
     // 扫描
     scanAdd() {
-      Ip.methods.scanadd(this.scanTime).send({ from: address }, (err, ret) => {
+      Np.methods.scanadd(this.scanTime).send({ from: address }, (err, ret) => {
         if (ret) {
           Toast.loading({
             message: "正在扫描...",
@@ -354,7 +361,7 @@ export default {
         Math.floor(d.getTime() / 1000) >= this.lastTime &&
         this.luckily3 == 0
       ) {
-        Ip.methods.luckilystar().send({ from: address }, (err, ret) => {
+        Np.methods.luckilystar().send({ from: address }, (err, ret) => {
           console.log(ret);
         });
       } else if (
@@ -368,10 +375,10 @@ export default {
     },
     // 结算
     self() {
-      Ip.methods.award(address).call((err, ret) => {
+      Np.methods.award(address).call((err, ret) => {
         console.log(this.luckily3, ret);
         if (this.luckily3 != 0 && ret != 0) {
-          Ip.methods.selfaward().send({ from: address }, (err, ret) => {
+          Np.methods.selfaward().send({ from: address }, (err, ret) => {
             console.log(ret);
           });
         } else {
@@ -516,7 +523,7 @@ export default {
           line-height: 24px;
           height: 24px;
           position: relative;
-          div{
+          div {
             flex: 1;
             text-align: center;
           }

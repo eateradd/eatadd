@@ -4,14 +4,19 @@
       <img src="../../assets/img/back.png" alt="" @click="back" />
       <div class="title">{{ title }}</div>
     </div>
-    
+
     <div class="content fz12" v-if="title == '参与记录'">
-      <div class="listTips indent0" v-show="!list||list.length==0">
+      <div class="listTips indent0" v-show="!list || list.length == 0">
         暂无记录
       </div>
-      <div  v-show="list||list.length!=0" class="listitem indent0" v-for="(v,i) in list" :key="i">
+      <div
+        v-show="list || list.length != 0"
+        class="listitem indent0"
+        v-for="(v, i) in list"
+        :key="i"
+      >
         <div>黑洞扫描</div>
-        <div>{{v.createTime}}</div>
+        <div>{{ v.createTime }}</div>
       </div>
     </div>
     <div class="content fz12" v-if="title == '版权'">
@@ -69,6 +74,27 @@
       <div>{{ $t("message.dapp.about") }}</div>
     </div>
 
+    <div class="content fz12" v-if="title == '动态推荐奖励'">
+      <div class="indent0">今日奖励: {{ listobj.rewards }}</div>
+      <div
+        class="visitTips indent0"
+        v-show="!visitList || visitList.length == 0"
+      >
+        暂无记录
+      </div>
+      <div
+        v-show="list || list.length != 0"
+        class="visitItem indent0"
+        v-for="(v, i) in visitList"
+        :key="i"
+      >
+        <div>{{ v.engageAddress }}</div>
+        <div>{{ v.winEat }}&emsp;EAT</div>
+      </div>
+    </div>
+    <div class="content fz12" v-if="title == 'NFT合成'">
+      <div>{{ $t("message.dapp.about") }}</div>
+    </div>
     <div class="content fz12" v-if="title == '社交媒体'">
       <img src="../../assets/img/1.png" @click="goIn(1)" alt="" />
       <img src="../../assets/img/2.png" @click="goIn(2)" alt="" />
@@ -78,7 +104,7 @@
       <img src="../../assets/img/8.png" @click="goIn(7)" alt="" />
     </div>
 
-    <div class="content" v-if="title == 'v2提现'">
+    <div class="content" v-if="title == 'v2提现' || title == 'v3提现'">
       <div class="balanceInfo">
         <div class="balanceItem indent0">
           <div class="left">EAT</div>
@@ -117,7 +143,7 @@ import config from "@/config";
 import tools from "@/api/public.js";
 import { Toast } from "vant";
 import axios from "axios";
-var Ip, address, web3;
+var Ip, address, web3, NP, MP;
 export default {
   data() {
     return {
@@ -130,7 +156,12 @@ export default {
       mrtN: "0",
       coverShow: false,
       markShow: false,
-      list:[]
+      list: [],
+      listobj: {
+        balance: 0,
+        rewards: 0,
+      },
+      visitList: [],
     };
   },
   mounted() {
@@ -139,11 +170,27 @@ export default {
       let { web, id } = res;
       web3 = web;
       address = id;
+      axios
+        .get(
+          `https://eatadd.com:8443/eatuser/getByAddress?address=${address}&pageNo=1&pageSize=10`
+        )
+        .then((res) => {
+          console.log(res);
+          if (res.data.result != undefined) {
+            this.listobj = res.data.result;
+            console.log(this.listobj);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
 
       axios
-        .get(`https://eatadd.com:8443/eatorder/listAddress?engageAddress=${address}&pageNo=1&pageSize=10`)
+        .get(
+          `https://eatadd.com:8443/eatorder/listAddress?engageAddress=${address}&pageNo=1&pageSize=10`
+        )
         .then((res) => {
-          this.list=res.data.result.records;
+          this.list = res.data.result.records;
           console.log(Boolean(this.list));
         })
         .catch((err) => {
@@ -153,17 +200,67 @@ export default {
         config["hyue"][config["key"]]["Hole"]["abi"],
         config["hyue"][config["key"]]["Hole"]["heyue"]
       );
-
-      Ip.methods.userInfo(address).call((err, ret) => {
-        if (ret) {
-          this.eatNum = Number(
-            ret[1].slice(0, ret[1].length - 18) +
-              "." +
-              ret[1].slice(ret[1].length - 18)
-          );
-          this.mrtNum = ret[2];
-        }
+      NP = new web3.eth.Contract(
+        config["hyue"][config["key"]]["Hole1"]["abi"],
+        config["hyue"][config["key"]]["Hole1"]["heyue"]
+      );
+      MP = new web3.eth.Contract(
+        config["hyue"][config["key"]]["Hole2"]["abi"],
+        config["hyue"][config["key"]]["Hole2"]["heyue"]
+      );
+      MP.methods.day().call((err, ret) => {
+        let day = ret - 1;
+        axios
+          .get(
+            `https://eatadd.com:8443/eatorder/listRewards?engageAddress=${address}&period=${day}`
+          )
+          .then((res) => {
+            if (res.data.result != undefined) {
+              this.visitList = res.data.result.records;
+              for (let k in this.visitList) {
+                this.visitList[k].engageAddress =
+                  this.visitList[k].engageAddress.substr(0, 4) +
+                  "****" +
+                  this.visitList[k].engageAddress.substr(
+                    this.visitList[k].engageAddress.length - 4
+                  );
+                this.visitList[k].address =
+                  this.visitList[k].address.substr(0, 4) +
+                  "****" +
+                  this.visitList[k].address.substr(
+                    this.visitList[k].address.length - 4
+                  );
+              }
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
       });
+      if (this.title == "v2提现") {
+        Ip.methods.userInfo(address).call((err, ret) => {
+          if (ret) {
+            this.eatNum = Number(
+              ret[1].slice(0, ret[1].length - 18) +
+                "." +
+                ret[1].slice(ret[1].length - 18)
+            );
+            this.mrtNum = ret[2];
+          }
+        });
+      } else if (this.title == "v3提现") {
+        NP.methods.userInfo(address).call((err, ret) => {
+          console.log(ret)
+          if (ret) {
+            this.eatNum = Number(
+              ret["eatamount"].slice(0, ret["eatamount"].length - 18) +
+                "." +
+                ret["eatamount"].slice(ret["eatamount"].length - 18)
+            );
+            this.mrtNum = ret["mrtamount"];
+          }
+        });
+      }
     });
   },
   methods: {
@@ -231,22 +328,41 @@ export default {
       } else {
         this.pushNum = this.eatN;
       }
-      Ip.methods
-        .withdraw(this.pushNum, this.mrtN)
-        .send({ from: address }, (err, ret) => {
-          console.log(ret);
-          if (ret) {
-            Toast.loading({
-              message: "正在提现...",
-              forbidClick: true,
-              duration: 0,
-              overlay: true,
-            });
-            this.showAccredit1 = false;
-            this.polling(ret, "提现成功");
-            this.close();
-          }
-        });
+      if (this.title == "v2提现") {
+        Ip.methods
+          .withdraw(this.pushNum, this.mrtN)
+          .send({ from: address }, (err, ret) => {
+            console.log(ret);
+            if (ret) {
+              Toast.loading({
+                message: "正在提现...",
+                forbidClick: true,
+                duration: 0,
+                overlay: true,
+              });
+              this.showAccredit1 = false;
+              this.polling(ret, "提现成功");
+              this.close();
+            }
+          });
+      } else if (this.title == "v3提现") {
+        NP.methods
+          .withdraw(this.pushNum, this.mrtN)
+          .send({ from: address }, (err, ret) => {
+            console.log(ret);
+            if (ret) {
+              Toast.loading({
+                message: "正在提现...",
+                forbidClick: true,
+                duration: 0,
+                overlay: true,
+              });
+              this.showAccredit1 = false;
+              this.polling(ret, "提现成功");
+              this.close();
+            }
+          });
+      }
     },
     back() {
       // this.$router.push("/dapp");
@@ -381,12 +497,23 @@ export default {
     }
   }
 }
-.listitem{
+.listitem {
   display: flex;
   justify-content: space-between;
 }
-.listTips{
+.listTips {
   height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+}
+.visitItem {
+  display: flex;
+  justify-content: space-between;
+}
+.visitTips {
+  height: 80%;
   display: flex;
   justify-content: center;
   align-items: center;

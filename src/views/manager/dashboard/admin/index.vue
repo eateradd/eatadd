@@ -1,6 +1,8 @@
 <template>
 	<div>
-		<el-button type @click="addaffiche">新增bannar</el-button>
+		<div class="f c_r">
+			<el-button type="primary" icon="el-icon-plus" @click="addaffiche">新增bannar</el-button>
+		</div>
 		<!-- 所有数据展示 -->
 		<div class="content_aff">
 			<div v-for="(item,index) in data" :key="index">
@@ -64,7 +66,7 @@
 			</div>
 			<!--底部确认按钮-->
 			<span slot="footer" class="dialog-footer">
-				<el-button @click="dynaDialogVisible = false">取 消</el-button>
+				<el-button @click="dialogIsshow = false">取 消</el-button>
 				<el-button v-if="modleflag==1" type="primary" @click="amendFun">确 定</el-button>
 				<el-button v-if="modleflag==2" type="primary" @click="commitFun">确 定</el-button>
 				<el-button v-if="modleflag==3" type="primary" @click="commitpicture">确 定</el-button>
@@ -81,6 +83,7 @@
 	// import { genUpToken } from "@/api/huanggua/qiniuToken";
 	// 获取随机数
 	// import { runder } from "@/utils/auth";
+	import { Toast } from "vant";
 	import {
 		gethomebannarList,
 		addhomebannar,
@@ -137,6 +140,7 @@
 					switch (code) {
 						case 0:
 							this.data = ss.map(v =>{
+							  this.$set(v,"fpath1",`${v.fpath}`)
 							  this.$set(v,"fpath",`https://eatadd.com:8443/images/${v.fpath}`)
 							  return v
 							});
@@ -179,8 +183,15 @@
 					projectId: parseInt(this.addlist.appName),
 					title: this.addlist.content
 				}
+				Toast.loading({
+                        message: "请求中...",
+                        forbidClick: true,
+                        duration: 0,
+                        overlay: true,
+                      });
 				addhomebannar(parm).then(res => {
 					const {code} = res;
+					Toast.clear()
 					switch (code) {
 						case 0:
 							this.$message({
@@ -215,26 +226,38 @@
 				this.modleflag = 2;
 				this.dialogtitle = "修改公告";
 				this.dialogIsshow = true;
+				console.log(val)
 				this.addlist = {
 					noticeUrl: val.url,
 					content: val.title,
 					noticeId: val.id,
 					imageUrlcopy: val.fpath,
+					fpath1: val.fpath1,
 					appName: String(val.projectId),
-					bannerType: String(val.status)
+					bannerType: String(val.status),
+					img: ''
 				};
 			},
 			// 提交修改
 			commitFun() {
 				const h = this.$createElement;
 				let parm = {
-					fpath: this.addlist.img,
+					fpath: this.addlist.img || this.addlist.fpath1,
 					status: parseInt(this.addlist.bannerType),
 					title: this.addlist.content,
 					projectId: parseInt(this.addlist.appName),
 					id: this.addlist.noticeId
 				}
+				console.log(this.addlist)
+				console.log(parm)
+				Toast.loading({
+                        message: "请求中...",
+                        forbidClick: true,
+                        duration: 0,
+                        overlay: true,
+                      });
 				editehomebannar(parm).then(res => {
+					Toast.clear()
 					const {code} = res
 					switch (code) {
 						case 0:
@@ -259,62 +282,18 @@
 					}
 				});
 			},
-			// 修改图片按钮
-			edieimg(val) {
-				this.modleflag = 3;
-				this.dialogtitle = "修改公告图片";
-				this.dialogIsshow = true;
-				this.addlist = {
-					img: "",
-					imageUrlcopy: val.img,
-					imgBucket: val.imgBucket,
-					imgKey: val.imgKey,
-					noticeId: val.id
-				};
-			},
-			// 修改图片 提交
-			commitpicture() {
-				const h = this.$createElement;
-				editepicture(this.addlist).then(res => {
-					const ss = res.data;
-					const {
-						status
-					} = res.data;
-					switch (status) {
-						case 200:
-							this.$message({
-								type: "success",
-								message: h("p", null, [
-									h("span", null, "提交成功！！！ "),
-									h("i", {
-										style: "color: teal"
-									}, ss.msg)
-								])
-							});
-							// this.$refs.upload.clearFiles()
-							this.getList();
-							this.dialogIsshow = false;
-							break;
-						default:
-							this.$message({
-								type: "error",
-								message: h("p", null, [
-									h("span", null, "报错 " + status + " :"),
-									h("i", {
-										style: "color: teal"
-									}, ss.msg)
-								])
-							});
-							break;
-					}
-				});
-			},
 			// 删除某条公告 val :  id值
 			deletnotice(val) {
 				console.log(val);
-
+				Toast.loading({
+                        message: "请求中...",
+                        forbidClick: true,
+                        duration: 0,
+                        overlay: true,
+                      });
 				const h = this.$createElement;
 				deletehomebannar(val).then(res => {
+					Toast.clear()
 					const {code} = res;
 					switch (code) {
 						case 0:

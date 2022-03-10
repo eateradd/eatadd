@@ -105,11 +105,53 @@ const routes = [
 			},
 		]
 	},
+	{
+		path: '/user',
+		name: 'user',
+		component: () => import('@/layout/index.vue'),
+		redirect: '/user',
+		children: [
+			{
+				path: '/user',
+				component: () => import('@/views/manager/userInfo/index.vue'),
+				name: 'userInfo',
+				meta: { title: '用户列表', icon: 'nested', affix: true }
+			},
+		]
+	},
+	{
+		path: '/order',
+		name: 'order',
+		component: () => import('@/layout/index.vue'),
+		redirect: '/order',
+		children: [
+			{
+				path: '/order',
+				component: () => import('@/views/manager/orderInfo/index.vue'),
+				name: 'orderInfo',
+				meta: { title: '活动列表', icon: 'nested', affix: true }
+			},
+		]
+	},
+	{
+		path: '/invite',
+		name: 'invite',
+		component: () => import('@/layout/index.vue'),
+		redirect: '/invite',
+		children: [
+			{
+				path: '/invite',
+				component: () => import('@/views/manager/invite/index.vue'),
+				name: 'invite',
+				meta: { title: '邀请关系', icon: 'nested', affix: true }
+			},
+		]
+	},
 ]
 
 const router = new VueRouter({
 
-	mode: 'history',
+	mode: 'hash',
 	base: process.env.BASE_URL,
 	routes
 

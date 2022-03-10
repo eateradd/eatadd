@@ -1,6 +1,8 @@
 <template>
 	<div class="content">
-		<el-button type @click="showPop(1)">新增问题</el-button>
+		<div class="f c_r">
+			<el-button type="primary" icon="el-icon-plus" @click="showPop(1)">新增问题</el-button>
+		</div>
 		<el-table :data="activities" style="width: 100%">
 			<el-table-column align="center" label="创建时间">
 				<template slot-scope="scope">

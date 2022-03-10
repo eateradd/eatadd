@@ -110,3 +110,33 @@ export function deletQA(query) {
     params: query
   })
 }
+
+// 用户
+
+export function getUserList(query) {
+  return request({
+    url: '/eatuser/find',
+    method: 'get',
+    params: query
+  })
+}
+
+// 活动
+
+export function getOrderList(query) {
+  return request({
+    url: '/eatorder/find',
+    method: 'get',
+    params: query
+  })
+}
+
+// 邀请关系
+
+export function getInviteList(query) {
+  return request({
+    url: '/relations/find',
+    method: 'get',
+    params: query
+  })
+}

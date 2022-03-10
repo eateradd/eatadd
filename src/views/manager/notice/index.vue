@@ -1,6 +1,8 @@
 <template>
 	<div class="content">
-		<el-button type @click="showPop(1)">新增公告</el-button>
+		<div class="f c_r">
+			<el-button type="primary" icon="el-icon-plus" @click="showPop(1)">新增公告</el-button>
+		</div>
 		<el-table :data="activities" style="width: 100%">
 		    <el-table-column align="center" label="创建时间">
 				<template slot-scope="scope">
@@ -153,7 +155,7 @@
 				this.dialogVisible = true
 			},
 			mpnent(str){
-				return moment('2022-02-21T09:12:27').format('YYYY-MM-DD' + '  ' + 'HH:mm:ss')
+				return moment(str).format('YYYY-MM-DD' + '  ' + 'HH:mm:ss')
 			},
 			submit(){
 				let parm = {

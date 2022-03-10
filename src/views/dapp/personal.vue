@@ -36,10 +36,10 @@
     </div>
 
     <div class="recommend">
-      <div class="title">
+      <!-- <div class="title">
         <div>动态推荐奖励</div>
         <div>{{ listobj.balance }}&nbsp;EAT</div>
-      </div>
+      </div> -->
       <!-- <div  v-show="list||list.length==0" class="recommendList" v-for="(v, i) in list" :key="i">
         <div class="left">{{ v.address }}</div>
         <div class="right">{{ v.rewards }}EAT</div>
@@ -64,12 +64,15 @@
       >
         <div class="left"><img :src="v.logo" alt="" />{{ v.title }}</div>
         <div class="right">
+          <div class="stateRight" v-if="v.title == '动态推荐奖励'">
+            {{ listobj.balance }}&nbsp;EAT
+          </div>
           <img
             src="../../assets/img/goDapp.png"
             alt=""
             v-if="v.title != '版本'"
           />
-          <div v-if="v.title == '版本'">v2.0.0</div>
+          <div v-if="v.title == '版本'">v3.0.0</div>
         </div>
       </div>
     </div>
@@ -120,7 +123,7 @@ import tools from "@/api/public.js";
 import bi from "@/abi/bi";
 import { Toast } from "vant";
 import axios from "axios";
-var Ip, address, recommend, Eat, Mrt, web3, BN, Hole, debris;
+var Ip, address, recommend, Eat, Mrt, web3, Hole, debris, Np;
 export default {
   data() {
     return {
@@ -133,13 +136,21 @@ export default {
       add: "",
       list: [],
       listobj: {
-        balance:0
+        balance: 0,
       },
       visitList: [
+        {
+          title: "动态推荐奖励",
+          logo: "",
+        },
         {
           title: "参与记录",
           logo: require("../../assets/img/visit1.png"),
         },
+        // {
+        //   title: "NFT合成",
+        //   logo: require("../../assets/img/visit7.png"),
+        // },
         {
           title: "社交媒体",
           logo: require("../../assets/img/visit2.png"),
@@ -171,6 +182,11 @@ export default {
         // },
         {
           title: "v2提现",
+          logo: require("../../assets/img/visit1.png"),
+          path: "",
+        },
+        {
+          title: "v3提现",
           logo: require("../../assets/img/visit1.png"),
           path: "",
         },
@@ -230,6 +246,10 @@ export default {
         config["hyue"][config["key"]]["Hole"]["abi"],
         config["hyue"][config["key"]]["Hole"]["heyue"]
       );
+      Np = new web3.eth.Contract(
+        config["hyue"][config["key"]]["Hole2"]["abi"],
+        config["hyue"][config["key"]]["Hole2"]["heyue"]
+      );
       recommend = new web3.eth.Contract(
         config["hyue"][config["key"]]["recommend"]["abi"],
         config["hyue"][config["key"]]["recommend"]["heyue"]
@@ -248,11 +268,17 @@ export default {
           this.isAdr = true;
         }
       });
-      Ip.methods.userInfo(address).call((err, ret) => {
+      Np.methods.userInfo(address).call((err, ret) => {
         if (ret) {
           Hole.methods.ownerloss(address).call((er, re) => {
             debris.methods.minted(address).call((e, r) => {
-              this.failTime = Number(ret["loss"]) + Number(re) - Number(r);
+              Ip.methods.userInfo(address).call((en, res) => {
+                this.failTime =
+                  Number(ret["loss"]) +
+                  Number(re) +
+                  Number(res["loss"]) -
+                  Number(r);
+              });
             });
           });
           if (this.needOpen == address) {
@@ -401,7 +427,7 @@ export default {
         this.pushNum = this.eatN;
       }
       console.log(this.pushNum, this.mrtN);
-      Ip.methods
+      Np.methods
         .deposit(this.pushNum, this.mrtN, this.invitedAddress)
         .send({ from: address }, (err, ret) => {
           console.log(ret);
@@ -443,7 +469,7 @@ export default {
         Toast.fail("正在扫描中,无法提现");
         return;
       }
-      Ip.methods.award(address).call((err, ret) => {
+      Np.methods.award(address).call((err, ret) => {
         if (ret != 0) {
           Toast.fail("尚未结算，无法提现");
           return;
@@ -453,7 +479,7 @@ export default {
           } else {
             this.pushNum = this.eatN;
           }
-          Ip.methods
+          Np.methods
             .withdraw(this.pushNum, this.mrtN)
             .send({ from: address }, (er, re) => {
               console.log(re);
@@ -533,7 +559,7 @@ export default {
           if (ret.blockNumber != null) {
             Toast.clear;
             Toast.success(msg);
-            Ip.methods.userInfo(address).call((err, ret) => {
+            Np.methods.userInfo(address).call((err, ret) => {
               if (ret) {
                 console.log(
                   ret["eatamount"].slice(ret["eatamount"].length - 18)
@@ -684,6 +710,14 @@ export default {
       .left {
         display: flex;
         align-items: center;
+      }
+      .right {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        .stateRight {
+          margin-right: 10px;
+        }
       }
     }
   }
